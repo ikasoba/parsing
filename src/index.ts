@@ -1,12 +1,16 @@
-export type ParserFunc<R,S extends "space" | null = null> = (i: number, s: string) => ([
+export type ParserFunc<R,T extends "space" | null = null> = (i: number, s: string) => ([
   number,
   R,
-  ...(S extends "space" ? ["space"] : [])
+  ...(T extends "space" ? ["space"] : [])
 ] | null)
 
-type Circular<T> = T | T[] | Circular<T>[]
+export type ArrayOrT<T> = T | T[]
 
-export class Parser<AR extends {} = {}> {
+export type ParserFuncReturnType<F extends ParserFunc<any,any>> = Exclude<ReturnType<F>,null>[1]
+export type AndResponseType<A extends ParserFunc<any,any>[]> = Exclude<ParserFuncReturnType<Exclude<A[number], ParserFunc<any, "space">>>, any[]>[]
+export type ParserReturnValueType<ASTType extends {} = never> = ArrayOrT<string | ASTType | null | Error>
+
+export class Parser<ASTType extends {} = never> {
   token(pattern: string | RegExp): ParserFunc<string> {
     return ((i, s) => {
       if (typeof pattern == "string"){
@@ -19,13 +23,13 @@ export class Parser<AR extends {} = {}> {
     })
   }
 
-  ref<T extends ParserFunc<Circular<string | AR>, "space" | null>>(f: () => T): T {
+  ref<T extends ParserFunc<ParserReturnValueType, "space" | null>>(f: () => T): T {
     return ((i,s) => {
       return f()(i,s)
     }) as T
   }
 
-  option<T extends Circular<string | AR>>(pattern: ParserFunc<T>): ParserFunc<T | null> {
+  option<T extends ParserReturnValueType<ASTType>>(pattern: ParserFunc<T>): ParserFunc<T | null> {
     return ((i,s) => {
       const r = pattern(i,s)
       if (r)i = r[0]
@@ -40,7 +44,7 @@ export class Parser<AR extends {} = {}> {
     }
   }
 
-  or<T extends Circular<string | AR>>(...funcs: (ParserFunc<T>)[]): ParserFunc<T> {
+  or<T extends ParserReturnValueType<ASTType>>(...funcs: (ParserFunc<T>)[]): ParserFunc<T> {
     return ((i,s) => {
       for (const f of funcs){
         const r = f(i, s)
@@ -50,20 +54,20 @@ export class Parser<AR extends {} = {}> {
     })
   }
 
-  and<T extends Circular<string | AR | null>, F extends ParserFunc<T, "space" | null>[]>(...funcs: F): ParserFunc<(Exclude<ReturnType<Exclude<F[number], ParserFunc<any, "space"> | ParserFunc<any[]>>>, null>[1])[]> {
+  and<F extends ParserFunc<ParserReturnValueType<ASTType>, "space" | null>[]>(...funcs: F): ParserFunc<AndResponseType<F>> {
     return (i,s) => {
-      const res: (T)[] = []
+      const res: AndResponseType<F> = []
       for (const f of funcs){
         const r = f(i, s)
         if (r == null)return null;
         i = r[0]
-        if (r[2] != "space")res.push(...r[1] instanceof Array ? r[1] : [r[1]])
+        if (r[2] != "space")res.push(...(r[1] instanceof Array ? r[1] : [r[1]]) as AndResponseType<F>)
       }
       return [i, res];
     }
   }
 
-  tree<T extends Circular<string | AR>, T2 extends ParserFunc<Circular<string | AR>, "space" | null>>(pattern: T2, parser: (a:(Exclude<ReturnType<T2>,null>[1])) => T): ParserFunc<T> {
+  tree<T extends ParserReturnValueType<ASTType>, T2 extends ParserFunc<ParserReturnValueType<ASTType>, "space" | null>>(pattern: T2, parser: (a:(Exclude<ReturnType<T2>,null>[1])) => T): ParserFunc<T> {
     return (i, s) => {
       const res = pattern(i, s);
       if (!res)return null;
@@ -75,3 +79,5 @@ export class Parser<AR extends {} = {}> {
   }
 
 }
+
+export default Parser
