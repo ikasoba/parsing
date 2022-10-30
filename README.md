@@ -14,7 +14,7 @@ console.log(helloWorld(0, "Hello, world!")?.[1], helloWorld(0, "hello, world!")?
 ## usage
 
 > **Note**
-> The above information may be simplified from the actual type.
+> The information below may be simplified from the actual type.
 
 ### ParserFunc\<...>
 ```ts
@@ -102,8 +102,10 @@ const datetime = parser.and(
   parser.option(parser.and(
     // <time>:<time>[:<time>]
     time, whitespace, parser.token(":"), whitespace, time, whitespace,
-    // :<time>
-    parser.option(parser.and(parser.token(":"), whitespace, time, whitespace))
+    parser.option(
+      // :<time>
+      parser.and(parser.token(":"), whitespace, time, whitespace)
+    )
   ))
 )
 
