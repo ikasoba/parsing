@@ -13,7 +13,7 @@
     "typescript": "^4.8.4"
   },
   "name": "@ikasoba000/parsing",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "main": ".o/index.js",
   "directories": {
     "test": "test"
