@@ -14,7 +14,7 @@
   },
   "name": "@ikasoba000/parsing",
   "version": "1.0.1",
-  "main": ".o/index.js",
+  "main": "./src/index.js",
   "directories": {
     "test": "test"
   },
