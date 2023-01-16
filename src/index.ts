@@ -61,7 +61,7 @@ export function every<T extends ParserFunc<any>[]>(...p: T): NormalParserFunc<Ex
   })
 }
 
-export const ref = <T>(p: () => ParserFunc<T>) => (x: string, i: number) => p()(x, i)
+export const ref = <T>(p: () => ParserFunc<T>) => ((x: string, i: number) => p()(x, i)) as ParserFunc<T>
 
 export const option = <T>(p: NormalParserFunc<T>): NormalParserFunc<T | null> => (x: string, i: number) => {
   const res = p(x, i)
