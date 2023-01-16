@@ -1,6 +1,7 @@
 import { ParsingError } from "./error.js"
 import { ExtractWrap, Flat } from "./util.js"
 
+export { ParsingError } from "./error.js"
 export type NormalParserFunc<R> = (src: string, rawIndex: number) => [R, number] | null | ParsingError
 export type IgnoreParserFunc = (src: string, rawIndex: number) => [number] | null | ParsingError
 export type ParserFunc<R = never> = R extends never ? IgnoreParserFunc : NormalParserFunc<R>
