@@ -5,10 +5,12 @@ export type NormalParserFunc<R> = (src: string, rawIndex: number) => [R, number]
 export type IgnoreParserFunc = (src: string, rawIndex: number) => [number] | null | ParsingError
 export type ParserFunc<R = never> = R extends never ? IgnoreParserFunc : NormalParserFunc<R>
 
-export type ExtractParserResponse<T extends ParserFunc<any>> = T extends ParserFunc<infer R> ? R : never
+export type ExtractParserResponse<T extends ParserFunc<any>> = T extends NormalParserFunc<infer R> ? R : never
 export type _ExtractParserResponseFromTuple<T extends ParserFunc<any>[], R extends any[] = []> = (
   T extends [infer X extends NormalParserFunc<any[]>, ...infer Y extends any[]]
     ? {x: _ExtractParserResponseFromTuple<Y, [...R, ...ExtractParserResponse<X>]>}
+  : T extends [infer X extends NormalParserFunc<any[] | null>, ...infer Y extends any[]]
+    ? {x: _ExtractParserResponseFromTuple<Y, [...R, ...(Exclude<ExtractParserResponse<X>, null> | [null])]>}
   : T extends [infer X extends NormalParserFunc<any>, ...infer Y extends any[]]
     ? {x: _ExtractParserResponseFromTuple<Y, [...R, ExtractParserResponse<X>]>}
   : T extends [infer X extends IgnoreParserFunc, ...infer Y extends any[]]
