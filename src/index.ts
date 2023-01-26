@@ -68,7 +68,7 @@ export const ref = <T>(p: () => ParserFunc<T>) => ((x: string, i: number) => p()
 
 export const option = <T>(p: NormalParserFunc<T>): NormalParserFunc<T | null> => (x: string, i: number) => {
   const res = p(x, i)
-  return (res instanceof ParsingError) ? res : [!res ? null : res[0], i]
+  return (res instanceof ParsingError) ? res : [!res ? null : res[0], !res ? i : res[1]]
 }
 
 export const ignore = <T extends ParserFunc<any>>(p: T): IgnoreParserFunc => (x: string, i: number) => {
