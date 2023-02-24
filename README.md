@@ -43,5 +43,5 @@ every(every(token("1"), token("2")), token("3"))("123", 0) // [["1", "2", "3"], 
 ## map&lt;T>(parser: Parser, converter: x => T): Parser&lt;T>
 it is useful for generating values from strings that can be parsed.
 ```ts
-map(token(/[0-9]+/), x => parseInt(x))("123", 0) // {type: "normal", res: 123, index: }
+map(token(/[0-9]+/), x => parseInt(x))("123", 0) // {type: "normal", res: 123, index: 0, length: 3 }
 ```
