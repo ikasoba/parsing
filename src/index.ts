@@ -124,7 +124,7 @@ export function every<T extends ParserFunc<any, any>[]>(...p: T): EveryResponse<
   }) as any
 }
 
-export const ref = <T, E extends never>(p: () => NormalParserFunc<T, E> | IgnoreParserFunc<E>) => ((x: string, i: number) => p()(x, i))
+export const ref = <T, E extends never, P extends  NormalParserFunc<T, E> | IgnoreParserFunc<E>>(p: () => P) => ((x: string, i: number) => p()(x, i)) as P
 
 export const option = <T, E extends never>(p: NormalParserFunc<T, E>): NormalParserFunc<T | null, E> => (x: string, i: number) => {
   const res = p(x, i)
@@ -213,4 +213,4 @@ export const many = <P extends (NormalParserFunc<any, any> | IgnoreParserFunc<an
   }
 }
 
-type a = ExtractParserResponse<EveryResponse<[NormalParserFunc<string>]>>[] extends any[][] ? true : false
+const a = many(token("a"), ignore(token("b")), )
