@@ -41,12 +41,10 @@ export type ParserResult<T extends any, E extends any = never> =
       index: number
       length: number
     }
-  | (
-    {
+  | {
       type: "error"
       error: E
     }
-    )
   | {
       type: "fail"
     }
@@ -135,7 +133,10 @@ export const option = <T, E>(p: NormalParserFunc<T, E>): NormalParserFunc<T | nu
   return {type: "normal", res: null, index: i, length: 0}
 }
 
-export const ignore = <E, T extends ParserFunc<any, E>>(p: T): IgnoreParserFunc<E> => (x: string, i: number) => {
+export const ignore = <E, T extends ParserFunc<any, E> | RegExp | string>(p: T): IgnoreParserFunc<E> => (x: string, i: number) => {
+  if (p instanceof RegExp || typeof p == "string"){
+    return ignore(token(p))
+  }
   const res = p(x, i)
   if (!isSafeResponse(res)){
     return res as any
@@ -186,4 +187,25 @@ export const takeUntil = <T extends ParserFunc<any>>(parser: T): NormalParserFun
   }
 }
 
-const a = every(every(token("1")), token("a"), ignore(token("b")), token("c"))(" ",1)
+export const many = <T, E, P extends NormalParserFunc<T, E>>(p: P): NormalParserFunc<T[], E> => (x, i) => {
+  const res: T[] = []
+  let length = 0
+  while (1){
+    const m = p(x, i + length)
+    if (!isSafeResponse(m)){
+      return res.length ? {
+        type: "normal",
+        index: i,
+        length: length,
+        res: res
+      } : m
+    }
+    if (m.type == "normal")res.push(m.res)
+  }
+  return {
+    type: "normal",
+    index: i,
+    length: length,
+    res: res
+  }
+}
