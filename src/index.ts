@@ -88,7 +88,7 @@ export function regex(p: RegExp): NormalParserFunc<string> {
   }
 }
 
-export function some<T extends ParserFunc<any, any>[]>(...p: T): T[number] | (ParserResult<never> & {type: "fail"}) {
+export function some<T extends ParserFunc<any, any>[]>(...p: T): T[number] {
   return (x, i) => {
     for (const f of p){
       const m = f(x, i)
