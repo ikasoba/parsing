@@ -3,7 +3,7 @@ import { ExtractWrap, Flat } from "./util.js"
 
 export { ParsingError } from "./error.js"
 
-export type ExtractParserResponse<T extends ParserFunc<any, any>> = T extends NormalParserFunc<infer R, any> ? R : never
+export type ExtractParserResponse<T extends ParserFunc<any, any>> = T extends NormalParserFunc<infer R, any | never> ? R : never
 export type _EveryResponse<T extends ParserFunc<any, any>[], R extends any[] = [], E extends any[] = []> = (
     T extends [NormalParserFunc<infer X extends any[]>, ...infer Y extends any[]]
       ? _EveryResponse<Y, [...R, ...X], E>
@@ -29,7 +29,7 @@ export type IgnoreParserFunc<E = never> = (src: string, rawIndex: number) => Exc
 export type _ParserFunc<R extends [any] = [never], E extends [any] = [never]> = R extends [never] ? IgnoreParserFunc<E[0]> : NormalParserFunc<R[0], E[0]>
 export type ParserFunc<R = never, E = never> = _ParserFunc<R extends any ? [any] | [never] : [R], [E]>
 
-export type ParserResult<T, E = never> = _ParserResult<[T], [E]>
+export type ParserResult<T, E = never> = _ParserResult<[T], E extends any ? [E] | [never] : [E]>
 export type _ParserResult<T extends [any], E extends [any] = [never]> =
     {
       type: "ignore"
@@ -43,19 +43,17 @@ export type _ParserResult<T extends [any], E extends [any] = [never]> =
       length: number
     }
   | (
-      E extends [never]
-      ? never
-      : {
-          type: "error"
-          error: E[0]
-        }
+    {
+      type: "error"
+      error: E[0]
+    }
     )
   | {
       type: "fail"
     }
 
 
-export const isSafeResponse = <T, E>(x: ParserResult<T, E>): x is Exclude<ParserResult<T, never>, {type: "fail" | "error"}> => (
+export const isSafeResponse = <T, E>(x: ParserResult<T, E>): x is Exclude<ParserResult<T, E>, {type: "fail" | "error"}> => (
   x.type != "error" && x.type != "fail"
 )
 
@@ -147,7 +145,7 @@ export const ignore = <E, T extends ParserFunc<any, E>>(p: T): IgnoreParserFunc<
   return {type: "ignore", index: res.index, length: res.length}
 }
 
-export const map = <T extends ParserFunc<any, any>, R extends any>(parser: T, then: (matched: ExtractParserResponse<T>, start: number, length: number) => R): NormalParserFunc<R, any> => {
+export const map = <E, P extends ParserFunc<any, E>, R>(parser: P, then: (matched: ExtractParserResponse<P>, start: number, length: number) => R): NormalParserFunc<R, E> => {
   return (x, i) => {
     const m = parser(x, i)
     if (isSafeResponse(m)){
