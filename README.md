@@ -11,22 +11,27 @@ console.log(helloWorld("Hello, world!", 0)?.[0], helloWorld("hello, world!", 0)?
 ```
 
 # usage
-## token(pattern: string | RegExp)
+
+```ts
+type Parser<T = string> = (src: string, index: number) => ParsingError | null | [res: T, index: number]
+```
+
+## token(pattern: string | RegExp): Parser
 Generate a parser that matches a string or regexp.
 
-## regex(pattern: RegExp)
+## regex(pattern: RegExp): Parser
 Generate a parser that matches the regular expression.
 
-## option(pattern)
+## option(parser: Parser): Parser
 Generates an optional parser.
 
-## ignore(pattern)
+## ignore(parser: Parser): IgnoreParser
 If parsing succeeds, only the next index is returned.
 
-## some(...patterns)
+## some(...parsers: Parser[]): Parser
 Generate a parser that matches any one of the parsers.
 
-## every(...patterns)
+## every(...parsers: Parser[]): Parser
 Combine multiple parsers to produce a single parser.
 Even when nested, the array depth remains 1.
 ```ts
@@ -35,7 +40,7 @@ every(every(token("1"), token("2")), token("3"))("123", 0) // [["1", "2", "3"], 
 // Both the top and bottom parsers have the same function.
 ```
 
-## map(patterns, converter)
+## map&lt;T>(parser: Parser, converter: x => T): Parser&lt;T>
 it is useful for generating values from strings that can be parsed.
 ```ts
 map(token(/[0-9]+/), x => parseInt(x))("123", 0) // [123, 3]
