@@ -4,6 +4,7 @@ import { ExtractWrap, Flat } from "./util.js"
 export { ParsingError } from "./error.js"
 
 export type ExtractParserResponse<T extends ParserFunc<any, any>> = T extends NormalParserFunc<infer R, any | never> ? R : never
+export type ExtractParserError<T extends ParserFunc<any, any>> = T extends NormalParserFunc<any, infer R> ? R : never
 export type _EveryResponse<T extends ParserFunc<any, any>[], R extends any[] = [], E extends any[] = []> = (
     T extends [NormalParserFunc<infer X extends any[]>, ...infer Y extends any[]]
       ? _EveryResponse<Y, [...R, ...X], E>
@@ -14,10 +15,10 @@ export type _EveryResponse<T extends ParserFunc<any, any>[], R extends any[] = [
   : T extends [NormalParserFunc<infer X, infer Y>, ...infer Z extends any[]]
       ? _EveryResponse<Z, [...R, X], [...E, Y]>
   : T extends []
-    ? NormalParserFunc<R, E[number]>
+    ? NormalParserFunc<R extends [] ? any[] : R, E[number]>
   : T extends [IgnoreParserFunc<infer X>, ...infer Y extends any[]]
     ? _EveryResponse<Y, [...R], [...E, X]>
-    : NormalParserFunc<R, E[number]>
+    : NormalParserFunc<R extends [] ? any[] : R, E[number]>
 );
 
 export type EveryResponse<T extends ParserFunc<any, any>[]> = (
@@ -187,9 +188,10 @@ export const takeUntil = <T extends ParserFunc<any>>(parser: T): NormalParserFun
   }
 }
 
-export const many = <T, E, P extends NormalParserFunc<T, E>>(p: P): NormalParserFunc<T[], E> => (x, i) => {
-  const res: T[] = []
+export const many = <P extends (NormalParserFunc<any, any> | IgnoreParserFunc<any>)[]>(..._p: P): NormalParserFunc<ExtractParserResponse<EveryResponse<P>>[], ExtractParserError<P[number]>> => (x, i) => {
+  const res = []
   let length = 0
+  const p = every(..._p)
   while (1){
     const m = p(x, i + length)
     if (!isSafeResponse(m)){
@@ -200,12 +202,15 @@ export const many = <T, E, P extends NormalParserFunc<T, E>>(p: P): NormalParser
         res: res
       } : m
     }
+    length += m.length
     if (m.type == "normal")res.push(m.res)
   }
   return {
     type: "normal",
     index: i,
     length: length,
-    res: res
+    res: res as any
   }
 }
+
+type a = ExtractParserResponse<EveryResponse<[NormalParserFunc<string>]>>[] extends any[][] ? true : false

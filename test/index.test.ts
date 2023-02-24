@@ -1,4 +1,4 @@
-import { every, ignore, map, NormalParserFunc, regex, token } from "../src/index"
+import { every, ignore, many, map, NormalParserFunc, ParserResult, regex, token } from "../src/index"
 import {describe, expect, test} from '@jest/globals';
 import { Flat } from "../src/util";
 
@@ -20,13 +20,24 @@ test("parse ISO8601 extended format", () => {
   console.timeEnd()
   expect(
     m
-  ).toEqual([{
-    year: "2022",
-    month: "12",
-    day: "20",
-    hour: "01",
-    minute: "02",
-    sec: "03",
-    ms: "04"
-  }, 22])
+  ).toEqual({
+    type: "normal",
+    index: 0,
+    length: 22,
+    res: {day: "20", hour: "01", minute: "02", month: "12", ms: "04", sec: "03", year: "2022"}
+  })
+})
+
+test("test many", () => {
+  console.time()
+  const m = many(token(/[1-9]/))("12345", 0)
+  console.timeEnd()
+  expect(
+      m
+  ).toEqual({
+    type: "normal",
+    index: 0,
+    length: 5,
+    res: [["1"], ["2"], ["3"], ["4"], ["5"]]
+  } as ParserResult<any, any>)
 })
