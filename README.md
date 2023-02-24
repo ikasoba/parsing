@@ -13,7 +13,7 @@ console.log(helloWorld("Hello, world!", 0)?.[0], helloWorld("hello, world!", 0)?
 # usage
 
 ```ts
-type Parser<T = string> = (src: string, index: number) => ParsingError | null | [res: T, index: number]
+type Parser<T = string, E = never> = (src: string, index: number) => ParsingError | null | ParserResult<T, E>
 ```
 
 ## token(pattern: string | RegExp): Parser
@@ -43,5 +43,5 @@ every(every(token("1"), token("2")), token("3"))("123", 0) // [["1", "2", "3"], 
 ## map&lt;T>(parser: Parser, converter: x => T): Parser&lt;T>
 it is useful for generating values from strings that can be parsed.
 ```ts
-map(token(/[0-9]+/), x => parseInt(x))("123", 0) // [123, 3]
+map(token(/[0-9]+/), x => parseInt(x))("123", 0) // {type: "normal", res: 123, index: }
 ```

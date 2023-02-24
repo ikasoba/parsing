@@ -29,8 +29,7 @@ export type IgnoreParserFunc<E = never> = (src: string, rawIndex: number) => Exc
 export type _ParserFunc<R extends [any] = [never], E extends [any] = [never]> = R extends [never] ? IgnoreParserFunc<E[0]> : NormalParserFunc<R[0], E[0]>
 export type ParserFunc<R = never, E = never> = _ParserFunc<R extends any ? [any] | [never] : [R], [E]>
 
-export type ParserResult<T, E = never> = _ParserResult<[T], E extends any ? [E] | [never] : [E]>
-export type _ParserResult<T extends [any], E extends [any] = [never]> =
+export type ParserResult<T extends any, E extends any = never> =
     {
       type: "ignore"
       index: number
@@ -38,14 +37,14 @@ export type _ParserResult<T extends [any], E extends [any] = [never]> =
     }
   | {
       type: "normal"
-      res: T[0]
+      res: T
       index: number
       length: number
     }
   | (
     {
       type: "error"
-      error: E[0]
+      error: E
     }
     )
   | {
@@ -104,9 +103,8 @@ export function every<T extends ParserFunc<any, any>[]>(...p: T): EveryResponse<
     let length = 0
     const res: ParserResult<any, any>[] = []
     for (const f of p){
-      const m = f(x, i)
+      const m = f(x, i + length)
       if (!isSafeResponse(m))return m as any;
-      i = m.index
       length += m.length
       //@ts-ignore
       if (m.type == "ignore"){
