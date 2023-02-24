@@ -23,6 +23,8 @@ export type ExtractParserResponseFromTuple<T extends ParserFunc<any>[]> = (
   ExtractWrap<_ExtractParserResponseFromTuple<T>>
 )
 
+export const isSafeResponse = <T>(x: T | ParsingError | null): x is T => x != null && !(x instanceof ParsingError)
+
 export function token(p: string | RegExp): NormalParserFunc<string> {
   return p instanceof RegExp
     ? regex(p)
@@ -83,4 +85,28 @@ export const map = <T extends ParserFunc<any>, R>(parser: T, then: (matched: Ext
       return [then(m.length == 2 ? m[0] : null, i), m.length == 2 ? m[1] : m[0]];
     }else return null
   }
+}
+
+export const except = <T extends ParserFunc<any>>(parser: T): NormalParserFunc<string> => (x, i) => {
+  let res: string = ""
+  while (1){
+    const m = parser(x, i)
+    if (isSafeResponse(m)){
+      return res == "" ? null : [res, i]
+    }
+    res += x[i++]
+  }
+  return [res, i]
+}
+
+export const takeUntil = <T extends ParserFunc<any>>(parser: T): NormalParserFunc<string> => (x, i) => {
+  let res: string = ""
+  while (1){
+    const m = parser(x, i)
+    if (isSafeResponse(m)){
+      return res == "" ? null : [res, i]
+    }
+    res += x[i++]
+  }
+  return [res, i]
 }
