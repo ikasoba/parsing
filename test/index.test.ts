@@ -1,4 +1,4 @@
-import { every, ExtractParserResponseFromTuple, ignore, map, NormalParserFunc, regex, token } from "../src/index"
+import { every, ignore, map, NormalParserFunc, regex, token } from "../src/index"
 import {describe, expect, test} from '@jest/globals';
 import { Flat } from "../src/util";
 
@@ -11,7 +11,7 @@ test("parse ISO8601 extended format", () => {
     every(
       yymmdd, ignore(token("T")), digits2, ignore(token(":")), digits2, ignore(token(":")), digits2, ignore(token(".")), digits
     ),
-    ([year,month,day,hour,minute,sec,ms]) => ({
+    ([year, month, day, hour, minute, sec, ms]) => ({
       year, month, day, hour, minute, sec, ms
     })
   )

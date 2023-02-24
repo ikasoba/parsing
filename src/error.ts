@@ -1,3 +1,7 @@
+export function getLine(src: string, index: number){
+  return (src.slice(0, index).match(/\r\n|\r|\n/g)?.length || 1) - 1
+}
+
 export class ParsingError {
   public name = this.constructor.name
   public index: number
@@ -10,7 +14,7 @@ export class ParsingError {
 /**/       line?:      number
   ){
     if (line == null || index == null){
-      this.line  = (source.slice(rawIndex).match(/\r\n|\r|\n/g)?.length || 2) - 1
+      this.line  = getLine(source, rawIndex)
       this.index = 1 + (
         [
           source.slice(0,rawIndex).lastIndexOf("\r\n"),

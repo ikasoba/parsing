@@ -1,13 +1,13 @@
 export type ExtractWrap<T> = (
   T extends never
-  ? never
-: T extends {x: {x: {x: infer R}}}
-  ? ExtractWrap<R>
-: T extends {x: {x: infer R}}
-  ? ExtractWrap<R>
-: T extends {x: infer R}
-  ? ExtractWrap<R>
-: T
+    ? never
+  : T extends {x: {x: {x: infer R}}}
+    ? ExtractWrap<R>
+  : T extends {x: {x: infer R}}
+    ? ExtractWrap<R>
+  : T extends {x: infer R}
+    ? ExtractWrap<R>
+  : T
 )
 
 export type _Flat<T, R extends any[] = []> = (
