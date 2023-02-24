@@ -14,7 +14,7 @@
     "typescript": "^4.8.4"
   },
   "name": "@ikasoba000/parsing",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "main": "./src/index.js",
   "types": "./src/index.ts",
   "directories": {
