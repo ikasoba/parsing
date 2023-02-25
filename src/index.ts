@@ -134,7 +134,7 @@ export const option = <T, E>(p: NormalParserFunc<T, E>): NormalParserFunc<T | nu
   return {type: "normal", res: null, index: i, length: 0}
 }
 
-export const ignore = <E, T extends ParserFunc<any, E> | RegExp | string>(p: T): IgnoreParserFunc<E> => (x: string, i: number) => {
+export const ignore = <T extends ParserFunc<any, any> | RegExp | string>(p: T): IgnoreParserFunc<ExtractParserError<T extends string | RegExp ? NormalParserFunc<string> : T>> => (x: string, i: number) => {
   if (p instanceof RegExp || typeof p == "string"){
     return ignore(token(p))
   }
@@ -145,7 +145,7 @@ export const ignore = <E, T extends ParserFunc<any, E> | RegExp | string>(p: T):
   return {type: "ignore", index: res.index, length: res.length}
 }
 
-export const map = <E, P extends ParserFunc<any, E>, R>(parser: P, then: (matched: ExtractParserResponse<P>, start: number, length: number) => R): NormalParserFunc<R, E> => {
+export const map = <P extends ParserFunc<any, any>, R>(parser: P, then: (matched: ExtractParserResponse<P>, start: number, length: number) => R): NormalParserFunc<R, ExtractParserError<P>> => {
   return (x, i) => {
     const m = parser(x, i)
     if (isSafeResponse(m)){
