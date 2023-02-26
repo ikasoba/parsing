@@ -5,24 +5,32 @@ export { ParsingError } from "./error.js"
 
 export type ExtractParserResponse<T extends ParserFunc<any, any>> = T extends NormalParserFunc<infer R, any | never> ? R : never
 export type ExtractParserError<T extends ParserFunc<any, any>> = T extends NormalParserFunc<any, infer R> ? R : never
-export type _EveryResponse<T extends ParserFunc<any, any>[], R extends any[] = [], E extends any[] = []> = (
+export type _ParserFilter<T extends ParserFunc<any, any>[], R extends any[] = [], E extends any[] = []> = (
     T extends [NormalParserFunc<infer X extends any[]>, ...infer Y extends any[]]
-      ? _EveryResponse<Y, [...R, ...X], E>
+      ? _ParserFilter<Y, [...R, ...X], [...E, never]>
   : T extends [NormalParserFunc<infer X>, ...infer Y extends any[]]
-      ? _EveryResponse<Y, [...R, X], E>
+      ? _ParserFilter<Y, [...R, X], [...E, never]>
   : T extends [NormalParserFunc<infer X extends any[], infer Y>, ...infer Z extends any[]]
-      ? _EveryResponse<Z, [...R, ...X], [...E, Y]>
+      ? _ParserFilter<Z, [...R, ...X], [...E, Y]>
   : T extends [NormalParserFunc<infer X, infer Y>, ...infer Z extends any[]]
-      ? _EveryResponse<Z, [...R, X], [...E, Y]>
+      ? _ParserFilter<Z, [...R, X], [...E, Y]>
   : T extends []
-    ? NormalParserFunc<R extends [] ? any[] : R, E[number]>
+    ? [R extends [] ? any[] : R, E[number], E]
   : T extends [IgnoreParserFunc<infer X>, ...infer Y extends any[]]
-    ? _EveryResponse<Y, [...R], [...E, X]>
-    : NormalParserFunc<R extends [] ? any[] : R, E[number]>
+    ? _ParserFilter<Y, [...R], [...E, X]>
+    : [R extends [] ? any[] : R, E[number], E]
 );
 
-export type EveryResponse<T extends ParserFunc<any, any>[]> = (
-  ExtractWrap<_EveryResponse<T>>
+export type ParserFilter<T extends ParserFunc<any, any>[]> = (
+  ExtractWrap<_ParserFilter<T>>
+)
+
+export type EveryResponse<T extends ParserFunc<any, any>[], A extends [any, any, any] = ParserFilter<T>> = (
+    A extends null
+      ? EveryResponse<T, ParserFilter<T>>
+  : A extends [any, any, any]
+      ? NormalParserFunc<A[0], A[1]>
+      : never
 )
 
 export type NormalParserFunc<R, E = never> = (src: string, rawIndex: number) => Exclude<ParserResult<R, E>, {type: "ignore"}>
@@ -145,7 +153,9 @@ export const ignore = <T extends ParserFunc<any, any> | RegExp | string>(p: T): 
   return {type: "ignore", index: res.index, length: res.length}
 }
 
-export const map = <P extends ParserFunc<any, any>, R>(parser: P, then: (matched: ExtractParserResponse<P>, start: number, length: number) => R): NormalParserFunc<R, ExtractParserError<P>> => {
+export function map<P extends ParserFunc<any, any>, R>(
+  parser: P, then: (matched: ExtractParserResponse<P>, start: number, length: number) => R
+): NormalParserFunc<R, ExtractParserError<P>> {
   return (x, i) => {
     const m = parser(x, i)
     if (isSafeResponse(m)){
