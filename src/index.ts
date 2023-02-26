@@ -154,14 +154,14 @@ export const ignore = <T extends ParserFunc<any, any> | RegExp | string>(p: T): 
 }
 
 export function map<P extends ParserFunc<any, any>, R>(
-  parser: P, then: (matched: ExtractParserResponse<P>, start: number, length: number) => R
+  parser: P, then: (matched: ExtractParserResponse<P>, start: number, length: number, source: string) => R
 ): NormalParserFunc<R, ExtractParserError<P>> {
   return (x, i) => {
     const m = parser(x, i)
     if (isSafeResponse(m)){
       return {
         type: "normal",
-        res: then(m.type == "normal" ? m.res : undefined, i, m.length),
+        res: then(m.type == "normal" ? m.res : undefined, i, m.length, x),
         index: m.index,
         length: m.length
       }
