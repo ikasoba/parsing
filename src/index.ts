@@ -71,7 +71,7 @@ export function token(p: string | RegExp): NormalParserFunc<string> {
           return {
             type: "normal",
             res: p,
-            index: i + p.length,
+            index: i,
             length: p.length
           }
         else
@@ -87,7 +87,7 @@ export function regex(p: RegExp): NormalParserFunc<string> {
       return {
         type: "normal",
         res: m[1] ?? m[0],
-        index: i + m[0].length,
+        index: i,
         length: m[0].length
       }
     else
@@ -99,7 +99,7 @@ export function some<T extends ParserFunc<any, any>[]>(...p: T): T[number] {
   return (x, i) => {
     for (const f of p){
       const m = f(x, i)
-      if (!isSafeResponse(m))return m
+      if (isSafeResponse(m) || !isSafeResponse(m) && m.type != "fail")return m as any
     }
     return {type: "fail"}
   }
@@ -134,17 +134,17 @@ export function every<T extends ParserFunc<any, any>[]>(...p: T): EveryResponse<
 
 export const ref = <T, E, P extends  NormalParserFunc<T, E> | IgnoreParserFunc<E>>(p: () => P) => ((x: string, i: number) => p()(x, i)) as P
 
-export const option = <T, E>(p: NormalParserFunc<T, E>): NormalParserFunc<T | null, E> => (x: string, i: number) => {
+export const option = <T extends ParserFunc<any, any>>(p: T): NormalParserFunc<ExtractParserResponse<T> | null, ExtractParserError<T>> => (x: string, i: number) => {
   const res = p(x, i)
-  if (isSafeResponse(res)){
+  if (isSafeResponse(res) && res.type != "ignore"){
     return res
   }
   return {type: "normal", res: null, index: i, length: 0}
 }
 
 export const ignore = <T extends ParserFunc<any, any> | RegExp | string>(p: T): IgnoreParserFunc<ExtractParserError<T extends string | RegExp ? NormalParserFunc<string> : T>> => (x: string, i: number) => {
-  if (p instanceof RegExp || typeof p == "string"){
-    return ignore(token(p))
+  if ((p instanceof RegExp) || typeof p == "string"){
+    return ignore(token(p))(x, i)
   }
   const res = p(x, i)
   if (!isSafeResponse(res)){
