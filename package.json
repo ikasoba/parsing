@@ -32,7 +32,8 @@
   "homepage": "https://github.com/ikasoba/parsing#readme",
   "keywords": [
     "parser",
-    "typescript"
+    "typescript",
+    "parser combinator"
   ],
   "description": ""
 }
